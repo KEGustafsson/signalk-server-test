@@ -40,4 +40,4 @@ jobs:
           images: signalk/signalk-server-docker-official
           tags: ${{ steps.docker_meta.outputs.tags }}
           build-args: |
-            TAG=${{ steps.vars.outputs.tag }}
+            TAG=${{ steps.vars.outputs.tag:1 }}
