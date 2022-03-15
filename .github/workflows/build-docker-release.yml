@@ -2,9 +2,6 @@ name: Build official docker release container
 
 on:
   push:
-    branches:
-    - master
-    - main
     tags:
     - 'v*'
 
@@ -22,13 +19,11 @@ jobs:
           tag-sha: false # Do not add git short SHA as Docker tag
       - name: Set TAG for build-args
         id: vars
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+        run: echo ::set-output name=tag::$(echo ${GITHUB_REF#refs/*/} | cut -1-) 
       - name: Check output
         env:
           RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
-          TEST: ${RELEASE_VERSION:1}
         run: |
           echo "TAG ENV = ${{ steps.docker_meta.outputs.tags }}"
           echo "VERSION = $RELEASE_VERSION"
-          echo $TEST
 
