@@ -30,7 +30,7 @@ jobs:
         id: vars
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - name: Check output
-        run: echo ::set-output name=VERSION::$(${{ steps.docker_meta.outputs.tags }:1})
+        run: echo ::set-output name=VERSION::$(${{{ steps.docker_meta.outputs.tags }}:1})
       - name: Check output1
         run: |
           echo "TAG ENV = ${{ steps.docker_meta.outputs.tags }:1}"
