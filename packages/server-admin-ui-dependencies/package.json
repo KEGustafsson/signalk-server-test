@@ -1,6 +1,6 @@
 {
   "name": "server-admin-ui-dependencies-kg",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "UI dependencies of the admin UI exposed to plugins that expose federated components",
   "main": "index.js",
   "author": "teppo.kurki@iki.fi",
