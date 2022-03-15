@@ -30,10 +30,16 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Show variables
+      - name: Set output
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      - name: Check output
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
         run: |
-          echo "TAGS = ${{ steps.docker_meta.outputs.tags }}"
-          echo "GITHUB_REF = ${{ GITHUB_REF }}"        
+          echo "TAGS ENV = $RELEASE_VERSION"
+          echo "TAGS = ${{ steps.vars.outputs.tag }}"
+          echo "TAGS meta = ${{ steps.docker_meta.outputs.tags }}"
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
