@@ -1,6 +1,6 @@
 {
-  "name": "streams-kg",
-  "version": "2.0.5",
+  "name": "streams-kg-test",
+  "version": "2.0.4",
   "description": "Utilities for handling streams of Signal K data",
   "main": "index.js",
   "scripts": {
