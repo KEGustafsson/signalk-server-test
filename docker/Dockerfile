@@ -22,7 +22,7 @@ RUN mkdir -p /home/node/.signalk/ \
 
 WORKDIR /home/node/signalk
 COPY ./.. .
-COPY startup.sh startup.sh
+COPY ./startup.sh startup.sh
 RUN chmod +x startup.sh
 
 RUN npm install --package-lock-only \
