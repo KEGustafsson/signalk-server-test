@@ -30,12 +30,11 @@ jobs:
         id: vars
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - name: Check output
-        env:
-          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
-          VERSION: ${RELEASE_VERSION:1}
+        run: echo ::set-output name=VERSION::$(${{ steps.docker_meta.outputs.tags }:1})
+      - name: Check output1
         run: |
-          echo "TAG ENV = $RELEASE_VERSION"
-          echo "TAG = $VERSION"
+          echo "TAG ENV = ${{ steps.docker_meta.outputs.tags }:1}"
+          echo "VERSION = ${{ steps.get_version.outputs.VERSION }}"
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
@@ -45,4 +44,4 @@ jobs:
           images: signalk/signalk-server-docker-official
           tags: ${{ steps.docker_meta.outputs.tags }}
           build-args: |
-            TAG=$VERSION
+            TAG=${{ steps.get_version.outputs.VERSION }}
