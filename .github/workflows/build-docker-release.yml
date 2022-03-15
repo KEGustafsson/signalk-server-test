@@ -23,9 +23,9 @@ jobs:
       - name: Check output
         env:
           RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+          TEST: ${RELEASE_VERSION:1}
         run: |
           echo "TAG ENV = ${{ steps.docker_meta.outputs.tags }}"
           echo "VERSION = $RELEASE_VERSION"
-          TAGGED = ${RELEASE_VERSION:1}
-          echo $TAGGED
+          echo $TEST
 
