@@ -28,12 +28,12 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Set TAG for build-args
         id: vars
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/:1}
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - name: Check output
         env:
           RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
         run: |
-          echo "TAGS ENV = $RELEASE_VERSION"
+          echo "TAGS ENV = ${RELEASE_VERSION:1}"
           echo "TAGS = ${{ steps.vars.outputs.tag }}"
           echo "TAGS meta = ${{ steps.docker_meta.outputs.tags }}"
       - name: Build and push
