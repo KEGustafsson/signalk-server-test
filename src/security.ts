@@ -1,0 +1,242 @@
+/*
+ * Copyright 2017 Teppo Kurki <teppo.kurki@iki.fi>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
+import {
+  chmodSync,
+  existsSync,
+  readFileSync,
+  Stats,
+  statSync,
+  writeFile,
+  writeFileSync
+} from 'fs'
+import _ from 'lodash'
+import path from 'path'
+import pem from 'pem'
+import { Mode } from 'stat-mode'
+import { WithConfig } from './app'
+import { createDebug } from './debug'
+import dummysecurity from './dummysecurity'
+const debug = createDebug('signalk-server:security')
+
+export interface WithSecurityStrategy {
+  securityStrategy: SecurityStrategy
+}
+
+export interface SecurityStrategy {
+  isDummy: () => boolean
+  allowReadOnly: () => boolean
+  shouldFilterDeltas: () => boolean
+  filterReadDelta: (user: any, delta: any) => any
+  configFromArguments: boolean
+  securityConfig: any
+  requestAccess: (config: any, request: any, ip: any, updateCb: any) => any
+}
+
+export class InvalidTokenError extends Error {
+  constructor(...args: any[]) {
+    super(...args)
+    Error.captureStackTrace(this, InvalidTokenError)
+  }
+}
+
+export function startSecurity(
+  app: WithSecurityStrategy & WithConfig,
+  securityConfig: any
+) {
+  let securityStrategyModuleName =
+    process.env.SECURITYSTRATEGY ||
+    _.get(app, 'config.settings.security.strategy')
+
+  if (securityStrategyModuleName) {
+    if (securityStrategyModuleName === 'sk-simple-token-security') {
+      console.log(
+        'The sk-simple-token-security security strategy is depricated, please update to @signalk/sk-simple-token-security'
+      )
+      process.exit(1)
+    } else if (
+      securityStrategyModuleName === '@signalk/sk-simple-token-security'
+    ) {
+      securityStrategyModuleName = './tokensecurity'
+    }
+
+    const config = securityConfig || getSecurityConfig(app, true)
+    app.securityStrategy = require(securityStrategyModuleName)(app, config)
+
+    if (securityConfig) {
+      app.securityStrategy.configFromArguments = true
+      app.securityStrategy.securityConfig = securityConfig
+    }
+  } else {
+    app.securityStrategy = dummysecurity()
+  }
+}
+
+export function getSecurityConfig(
+  app: WithConfig & WithSecurityStrategy,
+  forceRead = false
+) {
+  if (!forceRead && app.securityStrategy.configFromArguments) {
+    return app.securityStrategy.securityConfig
+  } else {
+    try {
+      const optionsAsString = readFileSync(pathForSecurityConfig(app), 'utf8')
+      return JSON.parse(optionsAsString)
+    } catch (e) {
+      console.error('Could not parse security config')
+      console.error(e.message)
+      return {}
+    }
+  }
+}
+
+export function pathForSecurityConfig(app: WithConfig) {
+  return path.join(app.config.configPath, 'security.json')
+}
+
+export function saveSecurityConfig(
+  app: WithSecurityStrategy & WithConfig,
+  data: any,
+  callback: any
+) {
+  if (app.securityStrategy.configFromArguments) {
+    app.securityStrategy.securityConfig = data
+    if (callback) {
+      callback(null)
+    }
+  } else {
+    const config = JSON.parse(JSON.stringify(data))
+    const configPath = pathForSecurityConfig(app)
+    writeFile(configPath, JSON.stringify(data, null, 2), err => {
+      if (!err) {
+        chmodSync(configPath, '600')
+      }
+      if (callback) {
+        callback(err)
+      }
+    })
+  }
+}
+
+export function getCertificateOptions(app: WithConfig, cb: any) {
+  let certLocation
+
+  if (!app.config.configPath || existsSync('./settings/ssl-cert.pem')) {
+    certLocation = './settings'
+  } else {
+    certLocation = app.config.configPath
+  }
+
+  const certFile = path.join(certLocation, 'ssl-cert.pem')
+  const keyFile = path.join(certLocation, 'ssl-key.pem')
+  const chainFile = path.join(certLocation, 'ssl-chain.pem')
+
+  if (existsSync(certFile) && existsSync(keyFile)) {
+    if (!hasStrictPermissions(statSync(keyFile))) {
+      cb(
+        new Error(
+          `${keyFile} must be accessible only by the user that is running the server, refusing to start`
+        )
+      )
+      return
+    }
+    if (!hasStrictPermissions(statSync(certFile))) {
+      cb(
+        new Error(
+          `${certFile} must be accessible only by the user that is running the server, refusing to start`
+        )
+      )
+      return
+    }
+    let ca
+    if (existsSync(chainFile)) {
+      debug('Found ssl-chain.pem')
+      ca = getCAChainArray(chainFile)
+      debug(JSON.stringify(ca, null, 2))
+    }
+    debug(`Using certificate ssl-key.pem and ssl-cert.pem in ${certLocation}`)
+    cb(null, {
+      key: readFileSync(keyFile),
+      cert: readFileSync(certFile),
+      ca
+    })
+  } else {
+    createCertificateOptions(app, certFile, keyFile, cb)
+  }
+}
+
+function hasStrictPermissions(stat: Stats) {
+  if (process.platform === 'win32') {
+    return true
+  } else {
+    return /^-r[-w][-x]------$/.test(new Mode(stat).toString())
+  }
+}
+
+export function getCAChainArray(filename: string) {
+  let chainCert = new Array<string>()
+  return readFileSync(filename, 'utf8')
+    .split('\n')
+    .reduce((ca, line) => {
+      chainCert.push(line)
+      if (line.match(/-END CERTIFICATE-/)) {
+        ca.push(chainCert.join('\n'))
+        chainCert = []
+      }
+      return ca
+    }, new Array<string>())
+}
+
+export function createCertificateOptions(
+  app: WithConfig,
+  certFile: string,
+  keyFile: string,
+  cb: any
+) {
+  const location = app.config.configPath ? app.config.configPath : './settings'
+  debug(`Creating certificate files in ${location}`)
+  pem.createCertificate(
+    {
+      days: 360,
+      selfSigned: true
+    },
+    (err: any, keys: any) => {
+      if (err) {
+        console.error('Could not create SSL certificate:' + err.message)
+        throw err
+      } else {
+        writeFileSync(keyFile, keys.serviceKey)
+        chmodSync(keyFile, '600')
+        writeFileSync(certFile, keys.certificate)
+        chmodSync(certFile, '600')
+        cb(null, {
+          key: keys.serviceKey,
+          cert: keys.certificate
+        })
+      }
+    }
+  )
+}
+
+export function requestAccess(
+  app: WithSecurityStrategy & WithConfig,
+  request: any,
+  ip: any,
+  updateCb: any
+) {
+  const config = getSecurityConfig(app)
+  return app.securityStrategy.requestAccess(config, request, ip, updateCb)
+}
