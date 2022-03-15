@@ -1,6 +1,6 @@
 {
   "name": "server-admin-ui-kg",
-  "version": "1.39.2",
+  "version": "1.39.3",
   "description": "Signal K server admin webapp",
   "author": "Scott Bender, Teppo Kurki",
   "contributors": [
@@ -16,7 +16,7 @@
     "@babel/core": "^7.11.6",
     "@babel/preset-react": "^7.10.4",
     "@fortawesome/fontawesome-free": "^5.15.1",
-    "server-admin-ui-dependencies-kg": "1.0.1",
+    "server-admin-ui-dependencies-kg": "1.0.2",
     "ansi-to-html": "^0.6.14",
     "babel-loader": "^8.1.0",
     "bootstrap": "^4.5.3",
