@@ -24,6 +24,8 @@ WORKDIR /home/node/signalk
 COPY --chown=node . .
 COPY --chown=node docker/startup.sh startup.sh
 RUN chmod +x startup.sh
+RUN pwd
+RUN ls -la
 
 RUN npm install --package-lock-only \
   && npm ci && npm cache clean --force \
