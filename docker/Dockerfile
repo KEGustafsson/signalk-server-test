@@ -21,10 +21,8 @@ RUN mkdir -p /home/node/.signalk/ \
   && mkdir -p /home/node/signalk/
 
 WORKDIR /home/node/signalk
-COPY . .
-COPY docker/startup.sh startup.sh
-RUN pwd
-RUN ls -la startup.sh
+COPY --chown=node . .
+COPY --chown=node docker/startup.sh startup.sh
 RUN chmod +x startup.sh
 
 RUN npm install --package-lock-only \
