@@ -25,5 +25,6 @@ jobs:
           RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
         run: |
           echo "TAG ENV = ${{ steps.docker_meta.outputs.tags }}"
+          echo "TAGGED = ${{ steps.vars.outputs.tag }}"
           echo "VERSION = $RELEASE_VERSION"
 
