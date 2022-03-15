@@ -78,7 +78,7 @@
   "dependencies": {
     "@signalk/n2k-signalk": "^2.0.0",
     "@signalk/nmea0183-signalk": "^3.0.0",
-    "server-admin-ui-kg": "1.39.2",
+    "server-admin-ui-kg": "1.39.3",
     "server-api-kg": "1.39.x",
     "@signalk/signalk-schema": "1.5.1",
     "streams-kg": "2.x",
