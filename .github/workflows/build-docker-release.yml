@@ -17,14 +17,26 @@ jobs:
         with:
           images: kgustafs/signalk-server-docker-official
           tag-sha: false # Do not add git short SHA as Docker tag
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Set TAG for build-args
         id: vars
-        run: echo ::set-output name=tag::$(echo ${GITHUB_REF#refs/*/} | sed 's/v//g') 
-      - name: Check output
-        env:
-          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
-        run: |
-          echo "TAG ENV = ${{ steps.docker_meta.outputs.tags }}"
-          echo "TAGGED = ${{ steps.vars.outputs.tag }}"
-          echo "VERSION = $RELEASE_VERSION"
+        run: echo ::set-output name=tag::$(echo ${GITHUB_REF#refs/*/} | sed 's/v//g')
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          file: ./docker/Dockerfile_rel
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
+          push: true
+          images: kgustafs/signalk-server-docker-official
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          build-args: |
+            TAG=${{ steps.vars.outputs.tag }}
 
