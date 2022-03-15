@@ -31,7 +31,14 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Set TAG for build-args
         id: vars
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/:1}
+      - name: Check output
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+        run: |
+          echo "TAGS ENV = $RELEASE_VERSION"
+          echo "TAGS = ${{ steps.vars.outputs.tag }}"
+          echo "TAGS meta = ${{ steps.docker_meta.outputs.tags }}"
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
@@ -41,4 +48,4 @@ jobs:
           images: signalk/signalk-server-docker-official
           tags: ${{ steps.docker_meta.outputs.tags }}
           build-args: |
-            TAG=${${{ steps.vars.outputs.tag }}:1}
+            TAG=${{ steps.vars.outputs.tag }}
