@@ -9,8 +9,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteract
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
   && DEBIAN_FRONTEND=noninteractive apt-get -y install nodejs
 
-COPY startup.sh startup.sh
-COPY avahi/avahi-dbus.conf /etc/dbus-1/system.d/avahi-dbus.conf
+COPY docker/avahi/avahi-dbus.conf /etc/dbus-1/system.d/avahi-dbus.conf
 RUN mkdir -p /var/run/dbus/ \
   && chmod -R 777 /var/run/dbus/ \
   && mkdir -p /var/run/avahi-daemon/ \
@@ -23,7 +22,7 @@ RUN mkdir -p /home/node/.signalk/ \
 
 WORKDIR /home/node/signalk
 COPY ./.. .
-# COPY startup.sh startup.sh
+COPY docker/startup.sh startup.sh
 RUN chmod +x startup.sh
 
 RUN npm install --package-lock-only \
