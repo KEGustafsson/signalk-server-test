@@ -31,9 +31,9 @@ jobs:
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - name: Check output
         env:
-          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }:1}
         run: |
-          echo "TAGS ENV = ${RELEASE_VERSION:1}"
+          echo "TAGS ENV = $RELEASE_VERSION"
           echo "TAGS = ${{ steps.vars.outputs.tag }}"
           echo "TAGS meta = ${{ steps.docker_meta.outputs.tags }}"
       - name: Build and push
