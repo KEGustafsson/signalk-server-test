@@ -1,5 +1,5 @@
 {
-  "name": "server-admin-ui-dependencies-kg-test",
+  "name": "server-admin-ui-dependencies",
   "version": "1.0.1",
   "description": "UI dependencies of the admin UI exposed to plugins that expose federated components",
   "main": "index.js",
