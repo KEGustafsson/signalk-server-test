@@ -23,7 +23,8 @@ jobs:
       - name: IF-THEN-ELSE
         run: |
           cd packages/server-admin-ui-dependencies
-          if [[ (npm view server-admin-ui-dependencies version) ==  (awk '/version/{gsub(/("|",)/,"",$2);print $2}' package.json) ]] \
-          then echo "Hello" \
-          else echo "Bye" \
+          if [[ (npm view server-admin-ui-dependencies version) ==  (awk '/version/{gsub(/("|",)/,"",$2);print $2}' package.json) ]]; then
+            echo "Hello"
+          else
+            echo "Bye"
           fi
