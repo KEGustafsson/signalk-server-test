@@ -89,6 +89,8 @@ jobs:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
       - run: |
+          npm view signalk-server version
+          awk '/version/{gsub(/("|",)/,"",$2);print $2}' package.json
           if [[ "$(npm view signalk-server version)" !=  "$(awk '/version/{gsub(/("|",)/,"",$2);print $2}' package.json)" ]]; then
             npm install --package-lock-only
             npm ci && npm cache clean --force
