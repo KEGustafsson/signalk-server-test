@@ -24,6 +24,4 @@ jobs:
         run: |
           if [[ "$(npm view @signalk/server-admin-ui-dependencies version)" !=  "$(awk '/version/{gsub(/("|",)/,"",$2);print $2}' packages/server-admin-ui-dependencies/package.json)" ]]; then
             echo "Hello"
-          else
-            echo "Bye"
           fi
