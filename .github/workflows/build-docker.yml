@@ -22,9 +22,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - name: IF-THEN-ELSE
         run: |
-          npm view @signalk/server-admin-ui-dependencies version
-          awk '/version/{gsub(/("|",)/,"",$2);print $2}' packages/server-admin-ui-dependencies/package.json
-          if [[ "$(npm view @signalk/server-admin-ui-dependencies version)" ==  "$(awk '/version/{gsub(/("|",)/,"",$2);print $2}' packages/server-admin-ui-dependencies/package.json)" ]]; then
+          if [[ "$(npm view @signalk/server-admin-ui-dependencies version)" !==  "$(awk '/version/{gsub(/("|",)/,"",$2);print $2}' packages/server-admin-ui-dependencies/package.json)" ]]; then
             echo "Hello"
           else
             echo "Bye"
