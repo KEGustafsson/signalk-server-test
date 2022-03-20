@@ -68,15 +68,18 @@ jobs:
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
+      - name: Set TAG for build-args
+        id: vars
+        run: echo ::set-output name=tag::$(echo ${GITHUB_REF#refs/*/} | sed 's/v//g')
+            - name: Show variables
+        run:  |
+          echo "nmp TAG = ${{ steps.vars.outputs.tag }}"
       - run: |
           if [[ "$(npm view signalk-server version)" !=  "$(awk '/"version":/{gsub(/("|",)/,"",$2);print $2}' package.json)" ]]; then
-            cd .
-            echo "Hello"
-            npm view signalk-server version
-            awk '/version/{gsub(/("|",)/,"",$2);print $2}' ./package.json
-            # npm install --package-lock-only
-            # npm ci && npm cache clean --force
-            # npm publish --access public
+            echo "Building nmp"
+          fi
+          if [[ "${{ steps.vars.outputs.tag }}" == *beta* ]]; then
+            echo "Tag has BETA in it"
           fi
 
   docker_image:
