@@ -71,7 +71,7 @@ jobs:
       - name: Set TAG for build-args
         id: vars
         run: echo ::set-output name=tag::$(echo ${GITHUB_REF#refs/*/} | sed 's/v//g')
-            - name: Show variables
+      - name: Show variables
         run:  |
           echo "nmp TAG = ${{ steps.vars.outputs.tag }}"
       - run: |
